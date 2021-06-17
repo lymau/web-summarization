@@ -1,27 +1,72 @@
-{% extends "base.html" %} {% block title %}Changed{% endblock %} {% block
-content %}
-<h1 align="center">Notes</h1>
-<ul class="list-group list-group-flush" id="notes">
-  {% for note in user.notes %}
-  <li class="list-group-item">
-    {{ note.data }}
-    <button type="button" class="close" onclick="deleteNote({{ note.id }})">
-      <span aria-hidden="true">&times;</span>
-    </button>
-  </li>
-  {% endfor %}
-</ul>
+{% extends "base.html" %} {% block title %}Text Summarization{% endblock %} {%
+block content %}
+<h1 class="h1 mt-3" align="center">Summarization</h1>
+<h5 class="h5 mb-2 text-secondary" align="center">
+  Bahasa yang didukung adalah bahasa Inggris dan bahasa Indonesia.
+</h5>
 <form method="post">
   <textarea
-    name="note"
-    id="note"
+    name="source"
+    id="source"
     class="form-control"
     cols="30"
     rows="10"
-  ></textarea>
+    required="required"
+    placeholder="Paste your text here ..."
+  >
+{{ text }}</textarea
+  >
   <br />
   <div align="center">
-    <button type="submit" class="btn btn-primary">Add Note</button>
+    <button type="submit" class="btn btn-primary btn-block">Summarize</button>
   </div>
 </form>
+<br />
+<form class="mb-3">
+  <textarea
+    name="result"
+    id="result"
+    class="form-control"
+    cols="30"
+    rows="10"
+    disabled="disabled"
+    placeholder="Summarized text goes here ..."
+  >
+{{ summary }}</textarea
+  >
+</form>
+<div class="row">
+  <div class="col">
+    <div class="card mb-3">
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item text-primary">
+          Jumlah karakter pada teks sebelum diringkas: <b>{{ len_text }}</b>
+        </li>
+        <li class="list-group-item text-success">
+          Jumlah karakter pada teks sesudah diringkas: <b>{{ len_summary }}</b>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col">
+    <div class="card mb-5">
+      <div class="card-header font-weight-bold">Evaluasi (Rouge)</div>
+      <ul class="list-group list-group-flush">
+        {% if rouge is defined %} {% for key, item in rouge.items() %}
+        <li class="list-group-item">
+          <p>{{ key }}:</p>
+          <ul>
+            {% for key,value in item.items() %}
+            <li>{{ key }}: {{ "%.2f"|format(value) }}</li>
+            {% endfor %}
+          </ul>
+        </li>
+        {% endfor %} {% endif %}
+      </ul>
+    </div>
+  </div>
+</div>
 {% endblock %}

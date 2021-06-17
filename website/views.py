@@ -1,42 +1,32 @@
 from flask import Blueprint, render_template, request, flash, jsonify
-from flask_login import login_required, current_user
-from .models import Note
-from . import db
+from .summarization import summarize, calculate_rouge
 import json
 
 
 # Routing
 views = Blueprint('views', __name__)
 
-# It will run when user hit `/`
-
 
 @views.route('/', methods=['GET', 'POST'])
-@login_required
 def home():
-    if request.method == 'POST':
-        note = request.form.get('note')
+    if request.method == "POST":
+        text = request.form.get('source')
 
-        if len(note) < 1:
-            flash('Note is too short!', category='error')
+        if len(text) < 1:
+            flash('Text is too short!', category='error')
         else:
-            new_note = Note(data=note, user_id=current_user.id)
-            db.session.add(new_note)
-            db.session.commit()
-            flash('Note added!', category='Success')
+            result = summarize(text)
+            summary = result['summary']
+            len_text = result['len_text']
+            len_summary = result['len_summary']
+            rouge = calculate_rouge(text, summary)
 
-    return render_template('home.html', user=current_user)
+            flash('Text has been summarized', category='success')
+            return render_template('home.html', summary=summary, text=text, len_text=len_text, len_summary=len_summary,  rouge=rouge)
+
+    return render_template('home.html')
 
 
-@views.route('/delete-note', methods=['POST'])
-def delete_note():
-    note = json.loads(request.data)
-    noteId = note['noteId']
-    note = Note.query.get(noteId)
-
-    if note:
-        if note.user_id == current_user.id:
-            db.session.delete(note)
-            db.session.commit()
-
-    return jsonify({})
+@views.route('/about', methods=['GET'])
+def about():
+    return render_template('about.html')
